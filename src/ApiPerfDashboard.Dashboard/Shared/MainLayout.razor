@@ -1,0 +1,18 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <h3>Dashboard</h3>
+        <NavLink href="/" Match="NavLinkMatch.All">Home</NavLink>
+    </div>
+    <main>
+        @Body
+    </main>
+</div>
+
+<style>
+.page { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+.sidebar { background:#222; color:#fff; padding:1rem; }
+.sidebar a { color:#9cf; text-decoration:none; display:block; margin:5px 0; }
+main { padding:1rem; }
+</style>

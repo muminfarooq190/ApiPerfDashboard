@@ -1,0 +1,61 @@
+@page "/"
+@inject IHttpClientFactory ClientFactory
+@inject IJSRuntime JS
+
+<h3>API Performance Dashboard</h3>
+
+<select @bind="timeRange">
+  <option value="1">Last 1h</option>
+  <option value="24">Last 24h</option>
+  <option value="168">Last 7d</option>
+</select>
+<button @onclick="LoadData">Load</button>
+
+@if (summary is null)
+{
+    <p>No data yet.</p>
+}
+else
+{
+    <canvas id="latencyChart" width="400" height="200"></canvas>
+    <canvas id="errorChart" width="400" height="200"></canvas>
+
+    <h4>Raw Data</h4>
+    <table>
+        <thead>
+            <tr><th>Endpoint</th><th>Avg Latency (ms)</th><th>Error %</th><th>Count</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var row in summary)
+        {
+            <tr>
+                <td>@row.Endpoint</td>
+                <td>@row.AvgLatency</td>
+                <td>@row.ErrorPct</td>
+                <td>@row.Count</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    int timeRange = 1;
+    List<SummaryDto>? summary;
+
+    async Task LoadData()
+    {
+        var from = DateTime.UtcNow.AddHours(-timeRange);
+        var to = DateTime.UtcNow;
+        var http = ClientFactory.CreateClient("api");
+        summary = await http.GetFromJsonAsync<List<SummaryDto>>(
+            $"/metrics/summary?from={from:o}&to={to:o}");
+
+        if (summary != null)
+        {
+            await JS.InvokeVoidAsync("dashboardCharts.renderCharts", summary);
+        }
+    }
+
+    record SummaryDto(string Endpoint, double AvgLatency, double ErrorPct, int Count);
+}

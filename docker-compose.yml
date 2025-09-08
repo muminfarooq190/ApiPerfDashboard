@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: metrics
+      POSTGRES_PASSWORD: metrics
+      POSTGRES_DB: metrics
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./src/ApiPerfDashboard.Api
+    environment:
+      - ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=metrics;Username=metrics;Password=metrics
+    ports:
+      - "5001:80"
+    depends_on:
+      - postgres
+
+  dashboard:
+    build: ./src/ApiPerfDashboard.Dashboard
+    ports:
+      - "5002:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
